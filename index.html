@@ -563,6 +563,8 @@ sendBtn.addEventListener("click", async ()=>{
   sendBtn.disabled = true;
   calHint.textContent = "Sender …";
   const dager = [...valgt].sort().map(pentDato).join(", ");
+  const params = new URLSearchParams(location.search);
+  const debug = params.has("debug");
   try{
     if(CONFIG.web3formsKey){
       const res = await fetch("https://api.web3forms.com/submit", {
@@ -572,16 +574,26 @@ sendBtn.addEventListener("click", async ()=>{
           access_key: CONFIG.web3formsKey,
           subject: "Hun sa JA! 💛 – datoer som passer",
           from_name: "Date-invitasjonen",
+          name: "Date-invitasjonen",
+          email: CONFIG.mottakerEpost,
+          message: "Datoer som passer henne: " + dager,
           datoer_som_passer: dager
         })
       });
-      const data = await res.json();
-      if(!data.success) console.warn("Web3Forms svarte:", data);
+      const data = await res.json().catch(()=>({success:false, message:"Ugyldig JSON-svar (HTTP "+res.status+")"}));
+      console.log("Web3Forms-status:", res.status, data);
+      if(!data.success){
+        if(debug) alert("Web3Forms feilet ("+res.status+"): " + (data.message || JSON.stringify(data)));
+        else console.warn("Web3Forms svarte:", data);
+      } else if(debug){
+        alert("Web3Forms OK: " + (data.message || "sendt"));
+      }
     } else {
       console.warn("Mangler web3formsKey i CONFIG – e-post ble IKKE sendt (forhåndsvisning).");
     }
   }catch(err){
     console.warn("Sending feilet:", err);
+    if(debug) alert("Nettverksfeil: " + err.message);
   }
   // hun får alltid den fine bekreftelsen, uansett nett
   visTakk();
