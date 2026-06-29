@@ -567,19 +567,14 @@ sendBtn.addEventListener("click", async ()=>{
   const debug = params.has("debug");
   try{
     if(CONFIG.web3formsKey){
+      const fd = new FormData();
+      fd.append("access_key", CONFIG.web3formsKey);
+      fd.append("name", "Hun");
+      fd.append("email", "hun@example.com");
+      fd.append("message", "Datoer som passer henne: " + dager);
       const res = await fetch("https://api.web3forms.com/submit", {
         method:"POST",
-        headers:{ "Content-Type":"application/json", "Accept":"application/json" },
-        body: JSON.stringify({
-          access_key: CONFIG.web3formsKey,
-          subject: "Hun sa JA - datoer som passer",
-          from_name: "Date-invitasjon",
-          name: "Hun",
-          email: "noreply@invitasjon.no",
-          message: "Hun valgte disse datoene: " + dager,
-          datoer_som_passer: dager,
-          botcheck: ""
-        })
+        body: fd
       });
       const data = await res.json().catch(()=>({success:false, message:"Ugyldig JSON-svar (HTTP "+res.status+")"}));
       console.log("Web3Forms-status:", res.status, data);
