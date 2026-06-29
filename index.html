@@ -572,12 +572,13 @@ sendBtn.addEventListener("click", async ()=>{
         headers:{ "Content-Type":"application/json", "Accept":"application/json" },
         body: JSON.stringify({
           access_key: CONFIG.web3formsKey,
-          subject: "Hun sa JA! 💛 – datoer som passer",
-          from_name: "Date-invitasjonen",
-          name: "Date-invitasjonen",
-          email: CONFIG.mottakerEpost,
-          message: "Datoer som passer henne: " + dager,
-          datoer_som_passer: dager
+          subject: "Hun sa JA - datoer som passer",
+          from_name: "Date-invitasjon",
+          name: "Hun",
+          email: "noreply@invitasjon.no",
+          message: "Hun valgte disse datoene: " + dager,
+          datoer_som_passer: dager,
+          botcheck: ""
         })
       });
       const data = await res.json().catch(()=>({success:false, message:"Ugyldig JSON-svar (HTTP "+res.status+")"}));
