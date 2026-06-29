@@ -396,12 +396,10 @@
    INNSTILLINGER – endre disse to linjene
    ===================================================================== */
 const CONFIG = {
-  // Gratis e-postlevering uten backend. Slik setter du det opp:
-  //  1) Gå til https://web3forms.com og skriv inn axel.fagerbakke@gmail.com
-  //  2) Du får en "Access Key" på e-post – lim den inn under
-  //  3) Test ved å velge en dato og trykke "Send svar" (sjekk innboksen din)
-  web3formsKey:  "592ab4dc-8d3c-4dfc-a912-b9784bcda7e0",  // ← Web3Forms-nøkkel (offentlig, trygg i klientkode)
-  mottakerEpost: "axel.fagerbakke@gmail.com",   // kun til info/emnefelt – leveringen styres av nøkkelen
+  // Gratis e-postlevering via FormSubmit – ingen konto eller nøkkel nødvendig.
+  // Første gang du tester får du en bekreftelsesmail fra FormSubmit – klikk
+  // "Activate Form" der. Etter det leveres alle submissions automatisk.
+  mottakerEpost: "axel.fagerbakke@gmail.com",
 };
 const STARTDATO = new Date(2026, 5, 30); // første dag: 30. juni 2026
 const SLUTTDATO = new Date(2026, 6, 12); // siste dag: 12. juli 2026
@@ -566,26 +564,30 @@ sendBtn.addEventListener("click", async ()=>{
   const params = new URLSearchParams(location.search);
   const debug = params.has("debug");
   try{
-    if(CONFIG.web3formsKey){
+    if(CONFIG.mottakerEpost){
       const fd = new FormData();
-      fd.append("access_key", CONFIG.web3formsKey);
       fd.append("name", "Hun");
-      fd.append("email", "hun@example.com");
+      fd.append("email", "noreply@invitasjon.local");
       fd.append("message", "Datoer som passer henne: " + dager);
-      const res = await fetch("https://api.web3forms.com/submit", {
+      fd.append("_subject", "Hun sa JA - datoer som passer");
+      fd.append("_template", "table");
+      fd.append("_captcha", "false");
+      const res = await fetch("https://formsubmit.co/ajax/" + encodeURIComponent(CONFIG.mottakerEpost), {
         method:"POST",
+        headers:{ "Accept":"application/json" },
         body: fd
       });
-      const data = await res.json().catch(()=>({success:false, message:"Ugyldig JSON-svar (HTTP "+res.status+")"}));
-      console.log("Web3Forms-status:", res.status, data);
-      if(!data.success){
-        if(debug) alert("Web3Forms feilet ("+res.status+"): " + (data.message || JSON.stringify(data)));
-        else console.warn("Web3Forms svarte:", data);
+      const data = await res.json().catch(()=>({success:"false", message:"Ugyldig JSON-svar (HTTP "+res.status+")"}));
+      console.log("FormSubmit-status:", res.status, data);
+      const ok = data.success === true || data.success === "true";
+      if(!ok){
+        if(debug) alert("FormSubmit feilet ("+res.status+"): " + (data.message || JSON.stringify(data)));
+        else console.warn("FormSubmit svarte:", data);
       } else if(debug){
-        alert("Web3Forms OK: " + (data.message || "sendt"));
+        alert("FormSubmit OK: " + (data.message || "sendt"));
       }
     } else {
-      console.warn("Mangler web3formsKey i CONFIG – e-post ble IKKE sendt (forhåndsvisning).");
+      console.warn("Mangler mottakerEpost i CONFIG – e-post ble IKKE sendt (forhåndsvisning).");
     }
   }catch(err){
     console.warn("Sending feilet:", err);
